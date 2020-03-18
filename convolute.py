@@ -61,11 +61,11 @@ def calc_average(image_kernel_set):
 
     #cv2.imshow('averaged out random image+kernel convolution', dst)
     print(dst)
-    print("dst")
+    print("sum matrix")
     result_matrix = np.divide(dst, len(conv_images))
 
     print(result_matrix)
-    print("result_matrix")
+    print("result_matrix, divided by n, where n is the set size")
 
     cv2.imshow('avg image', result_matrix)
     # returns the approximate result matrix (average of multiple random gen images + kernel combinations)
