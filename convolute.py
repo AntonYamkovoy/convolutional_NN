@@ -49,7 +49,10 @@ def calc_average(image_kernel_set):
         result = cv2.filter2D(src=tuple[0], kernel=tuple[1], ddepth=-1)# did conv on given random pair
         conv_images.append(result)
     # now we have a list of conv images in the list
+    if(len(conv_images)== 0):
+        return None
     dst = conv_images[0]
+
     for i in range(len(conv_images)):
         if i == 0:
             pass
@@ -97,11 +100,29 @@ def generate_toom_cook_results():
 # @ direct results matrix
 
 
-# @ error rate, in comparison to base
+# @ returns the average distance / absolute difference between values in the matrix
+#
+def compare_results(default_matrix, result_matrix):
+    # finding the sum of the differences of the corresponding matrix eelements to claculate
+    # an error value based on the default result_matrix
+    sum =0
+    default_h = default_matrix.shape[0]
+    default_w = default_matrix.shape[1]
+    result_h = result_matrix.shape[0]
+    result_w = result_matrix.shape[1]
 
-def compare_results():
 
-    return
+
+    if default_h == result_h and default_w == result_w:
+        # can continue given matrix dimensions are equal
+        for x in range(default_h):
+            for y in range(default_w):
+                diff = np.absolute(default_matrix.item((x, y)) - result_matrix.item((x, y)))
+                sum += diff
+        return sum/(default_h * default_w)
+
+    return None
+
 
 
 
@@ -119,7 +140,25 @@ calc_average(image_set)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
+
+# testing diff function
 """
+x= np.array([[0.2, 0.4, -0.1],
+            [0.7, 0.01, 0.9],
+            [1, -0.7, -0.5]])
+
+y = np.array([[1,  0.8,  0.1],
+            [0.4,  -0.5,  0.3],
+            [-0.6, 0.7, 0.9]])
+
+print("comparison")
+print(compare_results(x,y))
+
+
+"""
+
+"""
+# examples of what different kernels do on real images
 
 # load the image and scale to 0..1
 image_input = cv2.imread('test.jpg', cv2.IMREAD_GRAYSCALE).astype(float) / 255.0
