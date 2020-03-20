@@ -161,11 +161,15 @@ def do43Amount():
 	amountOfPoints = (kernalSize + imageSize) -2
 
 	if amountOfPoints == 5: 
-		for x in range(1, 1000):
+		for x in range(1, 1000, 5):
 			point1 = x/1000 
-			for y in range(1, 1000):
+			for y in range(1, 1000, 5):
 				point2 = y/1000 
-				for z in range(1, 1000):
+				for z in range(1, 1000, 5):
 					point3 = z/1000 	
-					showCookToomConvolution((0,point1,point2,point3,-1),imageSize,kernalSize)
+					if point1 == point2 or point1 == point3 or point2 == point3:
+						print("Skipped points ", point1, point2, point3)
+					else:	
+						print(point1, point2, point3)
+						showCookToomConvolution((0,point1,point2,point3,-1),imageSize,kernalSize)
 	else: print("Didn't seem to be a valid size. Sorry")	
