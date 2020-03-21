@@ -96,13 +96,14 @@ def generate_toom_cook_results():
 # compares toom cook generated matrix to direct convolution matrix
 
 # params
-# @ toom cook results matrix
-# @ direct results matrix
+# @ toom cook results matrix - square matrix
+# @ direct results matrix - square matrix
 
 
 # @ returns the average distance / absolute difference between values in the matrix
 #
 def compare_results(default_matrix, result_matrix):
+    # expects square matrices as input, not array
     # finding the sum of the differences of the corresponding matrix eelements to claculate
     # an error value based on the default result_matrix
     sum =0
@@ -133,12 +134,31 @@ def compare_results(default_matrix, result_matrix):
 
 
 
-
+"""
 
 image_set = create_image_set(3, 3, 10)
 calc_average(image_set)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+"""
+
+## testing standard convolution
+
+#image_input = cv2.imread('test.jpg', cv2.IMREAD_GRAYSCALE).astype(float) / 255.0
+print("Standard Convoltion")
+image_input = np.random.normal(-1, 1, (3,3))
+
+print(image_input,"\n")
+kernel = np.array([[1, 1, 1],
+                   [1, 1, 1],
+                   [1, 1, 1]]) / 9.0
+result = cv2.filter2D(src=image_input, kernel=kernel, ddepth=-1)
+print(result,"\n")
+
+
+print("Trying to apply toom cook")
+
+
 
 
 # testing diff function

@@ -2,6 +2,14 @@ from __future__ import print_function
 from sympy import symbols, Matrix, Poly, zeros, eye, Indexed, simplify, IndexedBase, init_printing, pprint
 from operator import mul
 from functools import reduce
+import numpy as np
+
+
+
+
+
+
+
 
 def At(a,m,n):
     return Matrix(m, n, lambda i,j: a[i]**j)
@@ -155,21 +163,53 @@ def showCookToomConvolution(a,n,r,fractionsIn=FractionsInG):
         pprint(f)
         print ("")
 
+
+
+# testing method we found in the paper
+H = np.array([1,2])
+X = np.array([1, 1, 1])
+
+
+AT,G,BT,f = cookToomFilter((0,1,-1), 2, 3)
+print(AT," AT\n")
+print(G," G\n")
+print(BT," BT\n")
+print(f," f\n")
+
+# trying to apply method
+# H = image
+# X = kernel
+# 1D convolution example
+"""
+
+(h ∗ x)1D = AT(Gh o BT x)
+
+
+
+"""
+tc_convolution_result = np.matmul(AT,np.multiply( np.matmul(G,H) , np.matmul(BT,X) ) )
+
+print(tc_convolution_result)
+
+
+
+
+
 def do43Amount():
 	imageSize = int(input("Image Size?: "))
 	kernalSize = int(input("Kernel Size?: "))
 	amountOfPoints = (kernalSize + imageSize) -2
 
-	if amountOfPoints == 5: 
+	if amountOfPoints == 5:
 		for x in range(1, 1000, 5):
-			point1 = x/1000 
+			point1 = x/1000
 			for y in range(1, 1000, 5):
-				point2 = y/1000 
+				point2 = y/1000
 				for z in range(1, 1000, 5):
-					point3 = z/1000 	
+					point3 = z/1000
 					if point1 == point2 or point1 == point3 or point2 == point3:
 						print("Skipped points ", point1, point2, point3)
-					else:	
+					else:
 						print(point1, point2, point3)
 						showCookToomConvolution((0,point1,point2,point3,-1),imageSize,kernalSize)
-	else: print("Didn't seem to be a valid size. Sorry")	
+	else: print("Didn't seem to be a valid size. Sorry")
