@@ -265,6 +265,7 @@ def test_points_for_image_list(points, imageKernelList, image_size, kernel_size)
 def find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,points_per_set,input_size):
     dictionary = {}
     resultList = []
+    point_coefficient = 0
     imageKernelList = generate_set(input_size,kernel_size,number_of_images) #  eg generating 4x4 images, 3x3 kernels, 10 images in the set
     for i in range(number_points_sets):
         # loop around this n times generating a new points set each loop to test
@@ -272,14 +273,17 @@ def find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,
         lower = 0
         pointsSet = sample_floats(lower,upper,image_size+kernel_size-2)
         average_error = test_points_for_image_list(pointsSet,imageKernelList,image_size,kernel_size)
+        print("average_error :",average_error, "@ points :",pointsSet)
         dictionary[tuple(pointsSet)] = average_error
+        point_coefficient += average_error
 
     # exit loop now we have all average error rates for the points sets we have tested
-    sorted(dictionary, key=dictionary.get)
+    sorted_d = sorted((value, key) for (key,value) in dictionary.items())
     for key, value in dictionary.items():
         temp = [key,value]
         resultList.append(temp)
-    return resultList
+    point_coefficient = point_coefficient/input_size
+    return resultList, point_coefficient
 
 
 # input size = a = m + r -1
@@ -320,28 +324,28 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
     cWino = simpleWinogradAlg(f,g2,2,finalB,finalG,finalA)[0]
     cWino = revMatrix(cWino)
 
-    #print("Standard Error:",la.norm(convLib - conv2d, ord=2)/la.norm(convLib, ord=2))
+    print("Error:",la.norm(convLib - conv2d, ord=2)/la.norm(convLib, ord=2))
     final_error = la.norm(convLib - cWino, ord=2)/la.norm(convLib, ord=2)
-    #print("Winograd/TC Error:",final_error)
+    print("Error:",final_error)
 
 
     return final_error
 
 
+
+"""
 # testing get error rate
 image_size = 2
 kernel_size = 3
-number_of_images = 10
+number_of_images = 300
 number_points_sets = 1000
 points_per_set = 3
 input_size = image_size + kernel_size -1 # 4
 result = find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,points_per_set,input_size)
 print("Lowest error rate points:")
-print(result[0])
-
-
-
-
+for i in range(10):
+    print(result[i])
+"""
 
 """
 # generates unique floating points random list
@@ -354,15 +358,17 @@ print(points)
 
 
 
-"""
+
 # testing average error rate function for a given points set
+# also returns a value to access the effectiveness of the point picker function
+# it will return the average performance of the points sets picked
 image_size = 2
 kernel_size = 3
 imageKernelList = generate_set(4,3,10) # 4x4 images, 3x3 kernels, 2 tuples total
-points = [-0.5, 0, 0.5]
-average_error = test_points_for_image_list(points,imageKernelList,image_size,kernel_size)
+points = [0,1,-1]
+average_error, point_coefficient = test_points_for_image_list(points,imageKernelList,image_size,kernel_size)
 print(average_error)
-"""
+
 
 
 """
@@ -373,20 +379,20 @@ kernel_size = 3
 points = [0.5,0.2,-0.1]
 image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
-
-
-
-
 error = test_points23(points,image,kernel,image_size,kernel_size)
+
+
+
 
 print("ex 23- 2")
 image_size = 2
 kernel_size = 3
-points = [0.1,0,-0.1]
+points = [1,0,-1]
 image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
 
 error = test_points23(points,image,kernel,image_size,kernel_size)
+print(error)
 
 
 print("ex 23- 2")
