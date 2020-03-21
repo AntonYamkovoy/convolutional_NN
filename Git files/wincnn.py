@@ -195,34 +195,72 @@ tc_convolution_result = np.matmul(AT,np.multiply( np.matmul(G,H) , np.matmul(BT,
 print(tc_convolution_result)
 
 
-def calculateError(AT,G,BT,f):
-	#image(d) = np.random.random(4)
-	#kernel(g) = np.random.random(3)
-	image = np.random.random(4)
-	kernel = np.random.random(3)
+def calculateError(point1, point2, point3):
 
-	inner = np.dot(G,kernel)*np.dot(BT,image)
-	y=np.dot(AT,inner)
+	A,G,B,f=  cookToomFilter((0,point1, point2,point3,-1), 2, 3)
 
-	direct=np.asarray([sum(image[:3]*kernel),sum(image[1:]*kernel)])
-	print("Error:",la.norm(direct - y)/la.norm(direct))
+	A23 = np.asarray(A)
+	B23 = np.asarray(B)
+	G23 = np.asarray(G, dtype=np.int32)
 
-	
-def do43Amount():
+
+	A23 = np.asarray(np.transpose(A23), dtype=np.int32)
+	B23 = np.asarray(np.transpose(B23), dtype=np.int32)
+
+
+
+	print("B23: ",B23,"\n")
+	print("G23: ",G23,"\n")
+	print("A23: ",A23,"\n")
+
+	#A23 = np.asarray(np.transpose(A))
+	#B23 = np.asarray(np.transpose(B))
+	#G23 = np.asarray(G)
+
+
+
+
+	#------------------------------------------
+
+	g = np.random.random((4,4))
+	f = np.random.random((3,3))
+
+	direct = np.zeros((2,2))
+	for i in range(2):
+	    for j in range(2):
+	        direct[i,j] = np.sum(f * g[i:i+3,j:j+3])
+
+	inner = np.dot(G23, np.dot(f, G23.T)) * np.dot(B23.T, np.dot(g, B23))
+	Y = np.dot(A23.T, np.dot(inner, A23))
+
+	print("Error of one Winograd",la.norm(Y - direct)/la.norm(direct))
+
+
+	convLib = scisig.convolve2d(f,g)
+	conv2d = convolve2DToeplitz(f,g)
+	g2 = revMatrix(g)
+	g2 = padImage(g2,len(f))
+	cWino = simpleWinogradAlg(f,g2,2,B23,G23,A23)[0]
+	cWino = revMatrix(cWino)
+
+	print("Standard Error:",la.norm(convLib - conv2d, ord=2)/la.norm(convLib, ord=2))
+	print("Winograd/TC Error:",la.norm(convLib - cWino, ord=2)/la.norm(convLib, ord=2))    
+
+def runBruteForce():
 	imageSize = int(input("Image Size?: "))
 	kernalSize = int(input("Kernel Size?: "))
 	amountOfPoints = (kernalSize + imageSize) -2
 
-	if amountOfPoints == 5:
-		for x in range(1, 1000, 5):
-			point1 = x/1000
-			for y in range(1, 1000, 5):
-				point2 = y/1000
-				for z in range(1, 1000, 5):
-					point3 = z/1000
-					if point1 == point2 or point1 == point3 or point2 == point3:
-						print("Skipped points ", point1, point2, point3)
-					else:
+	if amountOfPoints == 3: 
+		for x in range(-1000, 1000, 50):
+			point1 = x/1000 
+			for y in range(-1000, 1000, 100):
+				point2 = y/1000 
+				for z in range(-1000, 1000, 100):
+					point3 = z/1000 	
+					if point1 == point2 or point1 == point3 or point2 == point3 or point3 ==0 or point2 ==0 or point1 ==0 or point3 ==-1 or point2 ==-1 or point1 ==-1:
+						print("Skipped points ", point1)
+					else:	
 						print(point1, point2, point3)
-						showCookToomConvolution((0,point1,point2,point3,-1),imageSize,kernalSize)
-	else: print("Didn't seem to be a valid size. Sorry")
+						calculateError(point1, point2, point3)
+	else: print("Didn't seem to be a valid size. Sorry")	
