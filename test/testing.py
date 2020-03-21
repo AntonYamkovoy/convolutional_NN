@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.linalg as la
 import scipy.signal as scisig
-
+import random
 from func import *
 
 from sympy import symbols, Matrix, Poly, zeros, eye, Indexed, simplify, IndexedBase, init_printing, pprint
@@ -206,7 +206,7 @@ def test_points_variable(points, image, kernel ,image_size, kernel_size):
         g2 = padImage(g2,len(f))
 
 
-    #print("g2: ",g2.shape)
+    print("g2: ",g2.shape)
     cWino = simpleWinogradAlg(f,g2,image_size,finalB,finalG,finalA)[0]
     cWino = revMatrix(cWino)
     cWino = padImage(cWino,len(f))
@@ -247,7 +247,19 @@ def generate_set(image_size,kernel_size, size):
 
     return list
 
-
+def sample_floats(low, high, k=1):
+    """ Return a k-length list of unique random floats
+        in the range of low <= x <= high
+    """
+    result = []
+    seen = set()
+    for i in range(k):
+        x = random.uniform(low, high)
+        while x in seen:
+            x = random.uniform(low, high)
+        seen.add(x)
+        result.append(x)
+    return result
 
 # returns the averag error rate for a given set of points for a image set
 def test_points_for_image_list(points, imageKernelList, image_size, kernel_size):
@@ -266,10 +278,9 @@ def test_points_for_image_list(points, imageKernelList, image_size, kernel_size)
     return error_rate_sum/ len(imageKernelList)
 
 
-
-
-
+def find_error_rate(image_size,kernel_size,imageKernelList):
     return
+
 
 # input size = a = m + r -1
 # kernel size = r
@@ -316,12 +327,18 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
 
     return final_error
 
+"""
+# generates unique floating points random list
+# possible improvements later to focus only on rational numbers and to try something with reciprocal values
+
+points = sample_floats(0,1,3)
+print(points)
+"""
 
 
 
 
-
-
+"""
 # testing average error rate function for a given points set
 image_size = 2
 kernel_size = 3
@@ -329,7 +346,7 @@ imageKernelList = generate_set(4,3,10) # 4x4 images, 3x3 kernels, 2 tuples total
 points = [-0.5, 0, 0.5]
 average_error = test_points_for_image_list(points,imageKernelList,image_size,kernel_size)
 print(average_error)
-
+"""
 
 
 """
