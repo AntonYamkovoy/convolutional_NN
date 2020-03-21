@@ -360,7 +360,14 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
     (0.8763615975742496, (0.7759819237147527, 0.15878227887995477, 0.7565585407873622))
     (0.9090099101075308, (0.1316292858059085, 0.2558346108397479, 0.25843690355603155))
 
+
+    Making the comparison with some well known good/ bad points
+    eg typically good = -1/2 , 0 , 1/2 => 0.9673904083905738 error rate
+       typically bad = 10 , 20 , 50 => 1608.915067703649 error rate
 """
+
+
+
 # testing get error rate
 image_size = 2
 kernel_size = 3
@@ -388,19 +395,19 @@ print(points)
 
 
 
-"""
 
+"""
 # testing average error rate function for a given points set
 # also returns a value to access the effectiveness of the point picker function
 # it will return the average performance of the points sets picked
 image_size = 2
 kernel_size = 3
 imageKernelList = generate_set(4,3,10) # 4x4 images, 3x3 kernels, 2 tuples total
-points = [0,1,-1]
+points = [10,20,50]
 average_error = test_points_for_image_list(points,imageKernelList,image_size,kernel_size)
 print(average_error)
-"""
 
+"""
 
 """
 # TESTING
