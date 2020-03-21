@@ -3,6 +3,7 @@ import numpy.linalg as la
 import scipy.signal as scisig
 import random
 from func import *
+import time
 
 from sympy import symbols, Matrix, Poly, zeros, eye, Indexed, simplify, IndexedBase, init_printing, pprint
 from operator import mul
@@ -279,11 +280,7 @@ def find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,
 
     # exit loop now we have all average error rates for the points sets we have tested
     sorted_d = sorted((value, key) for (key,value) in dictionary.items())
-    """
-    for key, value in sorted_d.items():
-        temp = [key,value]
-        resultList.append(temp)
-    """
+
     point_coefficient = point_coefficient/input_size
     #print("Point coef: ",point_coefficient)
     return sorted_d
@@ -336,17 +333,46 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
 
 
 
+""" From experimental test 1 point generation + check at 5k image,kernel set takes
+    30-35+ seconds on my computer
+    so running 1000 points sets with 5k images each would take 8.5 hours ....
+"""
 
+""" example testrun of the program with these settings:
+    image_size = 2
+    kernel_size = 3
+    number of images in each image set = 100
+    number of points sets generated + tested = 1000
+    points per set = 3
+
+    Results Format:
+    1st column, error rate in comparison to normal 2d convolution
+    2nd-4th column, the points leading to this result
+
+    (0.8293854016542244, (0.10268447839109507, 0.9209103844887236, 0.2242102040864402))
+    (0.8293854016542245, (0.05743252435382351, 0.9518428352522156, 0.16366695166176426))
+    (0.8608823643609169, (0.9993169144098368, 0.16242954052141145, 0.06704640137626117))
+    (0.860882364360917, (0.09107965977429044, 0.30296302674844966, 0.9796091423709931))
+    (0.8608823643609181, (0.9775614042753844, 0.13068052221188053, 0.10527177256195563))
+    (0.8670705027418455, (0.9706835587521033, 0.08926187222206827, 0.1658943007025071))
+    (0.8670705027418457, (0.22458661920514633, 0.10077955310006215, 0.9141665596082269))
+    (0.8670705027418457, (0.27295678654985933, 0.07051704880887943, 0.9715972223407259))
+    (0.8763615975742496, (0.7759819237147527, 0.15878227887995477, 0.7565585407873622))
+    (0.9090099101075308, (0.1316292858059085, 0.2558346108397479, 0.25843690355603155))
+
+"""
 # testing get error rate
 image_size = 2
 kernel_size = 3
-number_of_images = 300
-number_points_sets = 10
+number_of_images = 100
+number_points_sets = 1000
 points_per_set = 3
 input_size = image_size + kernel_size -1 # 4
+#st = time.time()
 result = find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,points_per_set,input_size)
-
-print("Lowest error rate points:")
+#end = time.time()
+#print("time for 5k ",end-st)
+print("Lowest error rate points (10) :")
 i=0
 for i in range(10):
     print(result[i])
