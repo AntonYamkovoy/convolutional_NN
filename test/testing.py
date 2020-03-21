@@ -249,6 +249,27 @@ def generate_set(image_size,kernel_size, size):
 
 
 
+# returns the averag error rate for a given set of points for a image set
+def test_points_for_image_list(points, imageKernelList, image_size, kernel_size):
+    error_rate_sum = 0
+    for tuple in imageKernelList:
+        image = tuple[0]
+        kernel = tuple[1]
+        pointsTuple = points
+
+        if image_size == 2:
+            error_rate_sum += test_points23(points,image,kernel,image_size,kernel_size)
+        elif image_size == 4 or image_size == 6:
+            error_rate_sum += test_points_variable(points,image,kernel,image_size,kernel_size)
+        else:
+            print("Image dimensions not supported yet")
+    return error_rate_sum/ len(imageKernelList)
+
+
+
+
+
+    return
 
 # input size = a = m + r -1
 # kernel size = r
@@ -288,7 +309,7 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
     cWino = simpleWinogradAlg(f,g2,2,finalB,finalG,finalA)[0]
     cWino = revMatrix(cWino)
 
-    #print("Standard Error:",la.norm(convLib - conv2d, ord=2)/la.norm(convLib, ord=2))
+    print("Standard Error:",la.norm(convLib - conv2d, ord=2)/la.norm(convLib, ord=2))
     final_error = la.norm(convLib - cWino, ord=2)/la.norm(convLib, ord=2)
     print("Winograd/TC Error:",final_error)
 
@@ -296,6 +317,23 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
     return final_error
 
 
+
+
+
+
+
+# testing average error rate function for a given points set
+image_size = 2
+kernel_size = 3
+imageKernelList = generate_set(4,3,10) # 4x4 images, 3x3 kernels, 2 tuples total
+points = [-0.5, 0, 0.5]
+average_error = test_points_for_image_list(points,imageKernelList,image_size,kernel_size)
+print(average_error)
+
+
+
+"""
+# TESTING
 print("ex 23- 1")
 image_size = 2
 kernel_size = 3
@@ -303,12 +341,15 @@ points = [0.5,0.2,-0.1]
 image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
 
+
+
+
 error = test_points23(points,image,kernel,image_size,kernel_size)
 
 print("ex 23- 2")
 image_size = 2
 kernel_size = 3
-points = [0,-1,2]
+points = [0.1,0,-0.1]
 image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
 
@@ -334,7 +375,7 @@ image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
 
 error = test_points_variable(points,image,kernel,image_size,kernel_size)
-
+"""
 
 
 
