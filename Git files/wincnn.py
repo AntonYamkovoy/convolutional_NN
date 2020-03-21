@@ -141,29 +141,32 @@ def showCookToomConvolution(a,n,r,fractionsIn=FractionsInG):
     B = BT.transpose()
     A = AT.transpose()
 
-    print ("A = ")
-    pprint(A)
-    print ("")
+    calculateError(AT,G,BT,f)
+    #print ("A = ")
+    #pprint(A)
+    #print ("")
 
-    print ("G = ")
-    pprint(G)
-    print ("")
+    #print ("G = ")
+    #pprint(G)
+    #print ("")
 
-    print ("B = ")
-    pprint(B)
-    print ("")
+    #print ("B = ")
+    #pprint(B)
+    #print ("")
 
     if fractionsIn != FractionsInF:
-        print ("Linear Convolution: B*((G*g)(A*d)) =")
-        pprint(convolutionVerify(n,r,B,G,A))
-        print ("")
+    	temp=2
+        #print ("Linear Convolution: B*((G*g)(A*d)) =")
+        #pprint(convolutionVerify(n,r,B,G,A))
+        #print ("")
+        
+
 
     if fractionsIn == FractionsInF:
-        print ("fractions = ")
-        pprint(f)
-        print ("")
-
-
+    	temp=2
+        #print ("fractions = ")
+        #pprint(f)
+        #print ("")
 
 # testing method we found in the paper
 H = np.array([1,2])
@@ -192,9 +195,19 @@ tc_convolution_result = np.matmul(AT,np.multiply( np.matmul(G,H) , np.matmul(BT,
 print(tc_convolution_result)
 
 
+def calculateError(AT,G,BT,f):
+	#image(d) = np.random.random(4)
+	#kernel(g) = np.random.random(3)
+	image = np.random.random(4)
+	kernel = np.random.random(3)
 
+	inner = np.dot(G,kernel)*np.dot(BT,image)
+	y=np.dot(AT,inner)
 
+	direct=np.asarray([sum(image[:3]*kernel),sum(image[1:]*kernel)])
+	print("Error:",la.norm(direct - y)/la.norm(direct))
 
+	
 def do43Amount():
 	imageSize = int(input("Image Size?: "))
 	kernalSize = int(input("Kernel Size?: "))
