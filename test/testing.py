@@ -285,7 +285,7 @@ def refine_search(high_performance_points, number_of_images, image_size, kernel_
     return refined
 
 
-
+"""
 # testing get error rate
 image_size = 2
 kernel_size = 3
@@ -314,7 +314,39 @@ refined = refine_search(high_performance_points, number_images_refined, image_si
 refined_sorted = sorted(refined)
 for x in refined_sorted:
     print("refined_average_error + points", x)
+"""
 
+
+
+
+# testing get error rate
+image_size = 4
+kernel_size = 3
+number_of_images = 100
+number_points_sets = 1000
+points_per_set = 5
+input_size = image_size + kernel_size -1 # 4
+st = time.time()
+result = find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,points_per_set,input_size)
+end = time.time()
+print("Time elapsed to do initial error rate calculations: ",end-st,"s")
+
+print("Lowest error rate points (100) :")
+i=0
+for i in range(100):
+    print(result[i])
+
+high_performance_points = []
+for x in range(100):
+    high_performance_points.append(result[x])
+
+number_images_refined = 2000
+print("Refining top ",len(high_performance_points), " points with ",number_images_refined," runs each")
+
+refined = refine_search(high_performance_points, number_images_refined, image_size, kernel_size, points_per_set)
+refined_sorted = sorted(refined)
+for x in refined_sorted:
+    print("refined_average_error + points", x)
 
 
 """
