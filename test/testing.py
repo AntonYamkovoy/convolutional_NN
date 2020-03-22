@@ -176,51 +176,36 @@ def showCookToomConvolution(a,n,r,fractionsIn=FractionsInG):
 # function for testing 2d convolution on a variable amount of points
 def test_points_variable(points, image, kernel ,image_size, kernel_size):
 
-    points_tuple = tuple(points)
-    if len(points) > ((image_size + kernel_size ) - 2):
-        return None
-    # points list is of the correct size
-    A,G,B,f=  cookToomFilter(points_tuple, image_size, kernel_size)
+    A,G,B,f2=  cookToomFilter(tuple(points), image_size, kernel_size)
 
-    tempA = np.asarray(A)
-    tempB = np.asarray(B)
-    finalG = np.asarray(G, dtype=np.int32)
-    finalA = np.asarray(np.transpose(tempA), dtype=np.int32)
-    finalB = np.asarray(np.transpose(tempB), dtype=np.int32)
+    #print(B, "\n\n", G, "\n\n", A )
+
+    Atemp = np.array(A, dtype=np.float32)
+    Btemp = np.array(B, dtype=np.float32)
+    Gtemp = np.array(G, dtype=np.float32)
+    #print("Broken: ",B23, "\n\n", G23, "\n\n", A23 )
+    B23 = np.asarray(Btemp).T
+
+    G23 = np.asarray(Gtemp)
+
+    A23 = np.asarray(Atemp).T
+
+    #print("Working: ",B23, "\n\n", G23, "\n\n", A23 )
+
     g = image
     f = kernel
+
     direct = np.zeros((image_size,image_size))
     for i in range(image_size):
         for j in range(image_size):
             direct[i,j] = np.sum(f * g[i:i+kernel_size,j:j+kernel_size])
 
-    inner = np.dot(finalG, np.dot(f, finalG.T)) * np.dot(finalB.T, np.dot(g, finalB))
-    Y = np.dot(finalA.T, np.dot(inner, finalA))
+    inner = np.dot(G23, np.dot(f, G23.T)) * np.dot(B23.T, np.dot(g, B23))
+    Y = np.dot(A23.T, np.dot(inner, A23))
+    error = la.norm(Y - direct)/la.norm(direct)
+    #print("Error of one Winograd",la.norm(Y - direct)/la.norm(direct))
 
-    print("Error of one Winograd",la.norm(Y - direct)/la.norm(direct))
-
-    convLib = scisig.convolve2d(f,g)
-    conv2d = convolve2DToeplitz(f,g)
-    g2 = revMatrix(g)
-    if image_size == 4:
-        g2 = padImage(g2,len(f)-1)
-    else:
-        g2 = padImage(g2,len(f))
-
-
-    print("g2: ",g2.shape)
-    cWino = simpleWinogradAlg(f,g2,image_size,finalB,finalG,finalA)[0]
-    cWino = revMatrix(cWino)
-    cWino = padImage(cWino,len(f))
-
-    print("Standard Error:",la.norm( convLib - conv2d)/la.norm(convLib))
-    #final_error = la.norm(convLib - cWino)/la.norm(convLib)
-    final_error =la.norm( convLib- cWino) / la.norm(convLib)
-    #final_error =0
-    print("Winograd/TC Error:",final_error)
-
-
-    return final_error
+    return error
 
 
 
@@ -255,12 +240,8 @@ def test_points_for_image_list(points, imageKernelList, image_size, kernel_size)
         kernel = tuple[1]
         pointsTuple = points
 
-        if image_size == 2:
-            error_rate_sum += test_points23(points,image,kernel,image_size,kernel_size)
-        elif image_size == 4 or image_size == 6:
-            error_rate_sum += test_points_variable(points,image,kernel,image_size,kernel_size)
-        else:
-            print("Image dimensions not supported yet")
+        error_rate_sum += test_points_variable(points,image,kernel,image_size,kernel_size)
+
     return error_rate_sum/ len(imageKernelList)
 
 
@@ -272,7 +253,7 @@ def find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,
     for i in range(number_points_sets):
         # loop around this n times generating a new points set each loop to test
         upper = 1
-        lower = 0
+        lower = -1
         pointsSet = sample_floats(lower,upper,image_size+kernel_size-2)
         average_error = test_points_for_image_list(pointsSet,imageKernelList,image_size,kernel_size)
         print("average_error :",average_error, "@ points :",pointsSet)
@@ -287,50 +268,6 @@ def find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,
     return sorted_d
 
 
-# input size = a = m + r -1
-# kernel size = r
-# output size = r
-# number of points = m + r - 2
-
-# function for testing 2d convolution on a variable amount of points
-def test_points23(points, image, kernel ,image_size, kernel_size):
-
-    points_tuple = tuple(points)
-    if len(points) > ((image_size + kernel_size ) - 2):
-        return None
-    # points list is of the correct size
-    A,G,B,f2=  cookToomFilter(points_tuple, image_size, kernel_size)
-
-    tempA = np.asarray(A)
-    tempB = np.asarray(B)
-    finalG = np.asarray(G, dtype=np.int32)
-    finalA = np.asarray(np.transpose(tempA), dtype=np.int32)
-    finalB = np.asarray(np.transpose(tempB), dtype=np.int32)
-    g = image
-    f = kernel
-    direct = np.zeros((2,2))
-    for i in range(2):
-        for j in range(2):
-            direct[i,j] = np.sum(f * g[i:i+3,j:j+3])
-
-    inner = np.dot(finalG, np.dot(f, finalG.T)) * np.dot(finalB.T, np.dot(g, finalB))
-    Y = np.dot(finalA.T, np.dot(inner, finalA))
-
-    #print("Error of one Winograd",la.norm(Y - direct)/la.norm(direct))
-
-    convLib = scisig.convolve2d(f,g)
-    conv2d = convolve2DToeplitz(f,g)
-    g2 = revMatrix(g)
-    g2 = padImage(g2,len(f))
-    cWino = simpleWinogradAlg(f,g2,2,finalB,finalG,finalA)[0]
-    cWino = revMatrix(cWino)
-
-    #print("Error:",la.norm(convLib - conv2d, ord=2)/la.norm(convLib, ord=2))
-    final_error = la.norm(convLib - cWino, ord=2)/la.norm(convLib, ord=2)
-    #print("Error:",final_error)
-
-
-    return final_error
 
 
 
@@ -346,66 +283,37 @@ def refine_search(high_performance_points, number_of_images, image_size, kernel_
         refined.append((refined_error,points))
 
     return refined
-""" From experimental test 1 point generation + check at 5k image,kernel set takes
-    30-35+ seconds on my computer
-    so running 1000 points sets with 5k images each would take 8.5 hours ....
-"""
-
-""" example testrun of the program with these settings:
-    image_size = 2
-    kernel_size = 3
-    number of images in each image set = 100
-    number of points sets generated + tested = 1000
-    points per set = 3
-
-    Results Format:
-    1st column, error rate in comparison to normal 2d convolution
-    2nd-4th column, the points leading to this result
-
-    (0.8293854016542244, (0.10268447839109507, 0.9209103844887236, 0.2242102040864402))
-    (0.8293854016542245, (0.05743252435382351, 0.9518428352522156, 0.16366695166176426))
-    (0.8608823643609169, (0.9993169144098368, 0.16242954052141145, 0.06704640137626117))
-    (0.860882364360917, (0.09107965977429044, 0.30296302674844966, 0.9796091423709931))
-    (0.8608823643609181, (0.9775614042753844, 0.13068052221188053, 0.10527177256195563))
-    (0.8670705027418455, (0.9706835587521033, 0.08926187222206827, 0.1658943007025071))
-    (0.8670705027418457, (0.22458661920514633, 0.10077955310006215, 0.9141665596082269))
-    (0.8670705027418457, (0.27295678654985933, 0.07051704880887943, 0.9715972223407259))
-    (0.8763615975742496, (0.7759819237147527, 0.15878227887995477, 0.7565585407873622))
-    (0.9090099101075308, (0.1316292858059085, 0.2558346108397479, 0.25843690355603155))
 
 
-    Making the comparison with some well known good/ bad points
-    eg typically good = -1/2 , 0 , 1/2 => 0.9673904083905738 error rate
-       typically bad = 10 , 20 , 50 => 1608.915067703649 error rate
-"""
-
-""" a bit better strategy would be to test a large amount of points sets, for not that large image sets, and then get
-a better average on really well performing points"""
 
 # testing get error rate
 image_size = 2
 kernel_size = 3
-number_of_images = 10
-number_points_sets = 10000
+number_of_images = 100
+number_points_sets = 1000
 points_per_set = 3
 input_size = image_size + kernel_size -1 # 4
-#st = time.time()
+st = time.time()
 result = find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,points_per_set,input_size)
-#end = time.time()
-#print("time for 5k ",end-st)
+end = time.time()
+print("Time elapsed to do initial error rate calculations: ",end-st,"s")
 
-print("Lowest error rate points (10) :")
+print("Lowest error rate points (100) :")
 i=0
-for i in range(10):
+for i in range(100):
     print(result[i])
 
 high_performance_points = []
-for x in range(10):
+for x in range(100):
     high_performance_points.append(result[x])
 
-number_images_refined = 1000
-refined = refine_search(high_performance_points, number_images_refined, image_size, kernel_size, points_per_set)
+number_images_refined = 5000
+print("Refining top ",len(high_performance_points), " points with ",number_images_refined," runs each")
 
+refined = refine_search(high_performance_points, number_images_refined, image_size, kernel_size, points_per_set)
+refined_sorted = sorted(refined)
+for x in refined_sorted:
+    print("refined_average_error + points", x)
 
 
 
@@ -419,57 +327,55 @@ print(points)
 
 
 
-
 """
+
 # testing average error rate function for a given points set
 # also returns a value to access the effectiveness of the point picker function
 # it will return the average performance of the points sets picked
 image_size = 2
 kernel_size = 3
-imageKernelList = generate_set(4,3,10) # 4x4 images, 3x3 kernels, 2 tuples total
-points = [10,20,50]
+imageKernelList = generate_set(4,3,100) # 4x4 images, 3x3 kernels, 2 tuples total
+points = [0.8095133296178773,0.10362463148985646,0.7774840747025125]
 average_error = test_points_for_image_list(points,imageKernelList,image_size,kernel_size)
 print(average_error)
 
 """
 
+
+
+
+
 """
-# TESTING
-print("ex 23- 1")
+#
+# TESTING VARIOUS INPUT SIZED EG F(2,3)
+#
+
+print("f(2,3)")
 image_size = 2
 kernel_size = 3
-points = [0.5,0.2,-0.1]
+points = [10,20,30]
 image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
-error = test_points23(points,image,kernel,image_size,kernel_size)
+error = test_points_variable(points,image,kernel,image_size,kernel_size)
+print("Error: ",error)
+
+
+
+print("f(2,3)")
+image_size = 2
+kernel_size = 3
+points = [0,1,-1]
+image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
+kernel =  np.random.random((kernel_size,kernel_size))
+
+error = test_points_variable(points,image,kernel,image_size,kernel_size)
 print("Error: ",error)
 
 
 
 
-print("ex 23- 2")
-image_size = 2
-kernel_size = 3
-points = [1,0,-1]
-image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
-kernel =  np.random.random((kernel_size,kernel_size))
 
-error = test_points23(points,image,kernel,image_size,kernel_size)
-print(error)
-
-
-print("ex 23- 2")
-image_size = 6
-kernel_size = 3
-points = [-1.5,-1,-0.5,0,0.5,1,1.5] # number of points = (6+3)-2 = 7
-image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
-kernel =  np.random.random((kernel_size,kernel_size))
-
-error = test_points_variable(points,image,kernel,image_size,kernel_size)
-
-
-
-print("ex 23- 2")
+print("f(4,3)")
 image_size = 4
 kernel_size = 3
 points = [-1,-0.5,0,0.5,1] # number of points = (4+3)-2 = 5
@@ -477,84 +383,53 @@ image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
 
 error = test_points_variable(points,image,kernel,image_size,kernel_size)
-
-"""
-
-
-
-"""
-B23 = np.asarray([
-    [1, 0,-1, 0],
-    [0, 1, 1, 0],
-    [0,-1, 1, 0],
-    [0, 1, 0,-1]
-]).T
-
-G23 = np.asarray([
-    [ 1,  0, 0],
-    [.5, .5,.5],
-    [.5,-.5,.5],
-    [ 0, 0,  1]
-])
-
-A23 = np.asarray([
-    [1,1,1,0],
-    [0,1,-1,-1]
-]).T
-
-
-
-"""
-
-"""
-# need to generate A23, G23, B23 matrices
-#------------------------------------------
-A,G,B,f=  cookToomFilter((0,1,-1), 2, 3)
-
-A23 = np.asarray(A)
-B23 = np.asarray(B)
-G23 = np.asarray(G, dtype=np.int32)
-
-
-A23 = np.asarray(np.transpose(A23), dtype=np.int32)
-B23 = np.asarray(np.transpose(B23), dtype=np.int32)
-
-
-
-print("B23: ",B23,"\n")
-print("G23: ",G23,"\n")
-print("A23: ",A23,"\n")
-
-#A23 = np.asarray(np.transpose(A))
-#B23 = np.asarray(np.transpose(B))
-#G23 = np.asarray(G)
+print("Error: ",error)
 
 
 
 
-#------------------------------------------
+print("f(6,3)")
+image_size = 6
+kernel_size = 3
+points = [-1.5,-1,-0.5,0,0.5,1,1.5] # number of points = (6+3)-2 = 7 points
+image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
+kernel =  np.random.random((kernel_size,kernel_size))
 
-g = np.random.random((4,4))
-f = np.random.random((3,3))
-
-direct = np.zeros((2,2))
-for i in range(2):
-    for j in range(2):
-        direct[i,j] = np.sum(f * g[i:i+3,j:j+3])
-
-inner = np.dot(G23, np.dot(f, G23.T)) * np.dot(B23.T, np.dot(g, B23))
-Y = np.dot(A23.T, np.dot(inner, A23))
-
-print("Error of one Winograd",la.norm(Y - direct)/la.norm(direct))
+error = test_points_variable(points,image,kernel,image_size,kernel_size)
+print("Error: ", error)
 
 
-convLib = scisig.convolve2d(f,g)
-conv2d = convolve2DToeplitz(f,g)
-g2 = revMatrix(g)
-g2 = padImage(g2,len(f))
-cWino = simpleWinogradAlg(f,g2,2,B23,G23,A23)[0]
-cWino = revMatrix(cWino)
 
-print("Standard Error:",la.norm(convLib - conv2d, ord=2)/la.norm(convLib, ord=2))
-print("Winograd/TC Error:",la.norm(convLib - cWino, ord=2)/la.norm(convLib, ord=2))
+print("f(5,3)")
+image_size = 5
+kernel_size = 3
+points = [-1.5,-1,-0.5,0,0.5,1] # number of points = (5+3)-2 = 6 points
+image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
+kernel =  np.random.random((kernel_size,kernel_size))
+
+error = test_points_variable(points,image,kernel,image_size,kernel_size)
+print("Error: ", error)
+
+
+print("f(3,3)")
+image_size = 3
+kernel_size = 3
+points = [-1,-0.5,0,0.5] # number of points = (3+3)-2 = 4 points
+image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
+kernel =  np.random.random((kernel_size,kernel_size))
+
+error = test_points_variable(points,image,kernel,image_size,kernel_size)
+print("Error: ", error)
+
+
+print("f(2,2)")
+image_size = 2
+kernel_size = 2
+points = [0.5,-0.5] # number of points = (2+2)-2 = 2 points
+image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
+kernel =  np.random.random((kernel_size,kernel_size))
+
+error = test_points_variable(points,image,kernel,image_size,kernel_size)
+print("Error: ", error)
+
 """
