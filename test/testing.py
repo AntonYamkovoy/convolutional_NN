@@ -347,7 +347,7 @@ print(average_error)
 
 """
 #
-# TESTING VARIOUS INPUT SIZED EG F(2,3)
+# TESTING VARIOUS INPUT SIZED EG F(2,3)..
 #
 
 print("f(2,3)")
