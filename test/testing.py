@@ -167,6 +167,7 @@ def showCookToomConvolution(a,n,r,fractionsIn=FractionsInG):
 
 
 
+
 # input size = a = m + r -1
 # kernel size = r
 # output size = r
@@ -333,6 +334,18 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
 
 
 
+def refine_search(high_performance_points, number_of_images, image_size, kernel_size, points_per_set):
+    refined = []
+    for x in range(len(high_performance_points)):
+        input_size = image_size + kernel_size -1
+        imageKernelList = generate_set(input_size,kernel_size,number_of_images)
+        points = high_performance_points[x][1]
+
+        refined_error = test_points_for_image_list(points, imageKernelList, image_size, kernel_size)
+        print("refined_error (average of ",number_of_images," runs) + points : ",(refined_error,points))
+        refined.append((refined_error,points))
+
+    return refined
 """ From experimental test 1 point generation + check at 5k image,kernel set takes
     30-35+ seconds on my computer
     so running 1000 points sets with 5k images each would take 8.5 hours ....
@@ -366,23 +379,34 @@ def test_points23(points, image, kernel ,image_size, kernel_size):
        typically bad = 10 , 20 , 50 => 1608.915067703649 error rate
 """
 
-
+""" a bit better strategy would be to test a large amount of points sets, for not that large image sets, and then get
+a better average on really well performing points"""
 
 # testing get error rate
 image_size = 2
 kernel_size = 3
-number_of_images = 100
-number_points_sets = 1000
+number_of_images = 10
+number_points_sets = 10000
 points_per_set = 3
 input_size = image_size + kernel_size -1 # 4
 #st = time.time()
 result = find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,points_per_set,input_size)
 #end = time.time()
 #print("time for 5k ",end-st)
+
 print("Lowest error rate points (10) :")
 i=0
 for i in range(10):
     print(result[i])
+
+high_performance_points = []
+for x in range(10):
+    high_performance_points.append(result[x])
+
+number_images_refined = 1000
+refined = refine_search(high_performance_points, number_images_refined, image_size, kernel_size, points_per_set)
+
+
 
 
 """
@@ -418,6 +442,7 @@ points = [0.5,0.2,-0.1]
 image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
 error = test_points23(points,image,kernel,image_size,kernel_size)
+print("Error: ",error)
 
 
 
@@ -452,8 +477,8 @@ image = np.random.random((image_size+kernel_size-1,image_size+kernel_size-1))
 kernel =  np.random.random((kernel_size,kernel_size))
 
 error = test_points_variable(points,image,kernel,image_size,kernel_size)
-"""
 
+"""
 
 
 
