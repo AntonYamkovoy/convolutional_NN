@@ -285,12 +285,14 @@ def refine_search(high_performance_points, number_of_images, image_size, kernel_
     return refined
 
 
-"""
+""" one thing i notice with the results is that the best points always have a split on pos/negative numbers, never pos, pos, pos || neg, neg, neg"""
+
+
 # testing get error rate
 image_size = 2
 kernel_size = 3
-number_of_images = 100
-number_points_sets = 1000
+number_of_images = 10
+number_points_sets = 10000
 points_per_set = 3
 input_size = image_size + kernel_size -1 # 4
 st = time.time()
@@ -314,10 +316,9 @@ refined = refine_search(high_performance_points, number_images_refined, image_si
 refined_sorted = sorted(refined)
 for x in refined_sorted:
     print("refined_average_error + points", x)
+
+
 """
-
-
-
 
 # testing get error rate
 image_size = 4
@@ -347,7 +348,7 @@ refined = refine_search(high_performance_points, number_images_refined, image_si
 refined_sorted = sorted(refined)
 for x in refined_sorted:
     print("refined_average_error + points", x)
-
+"""
 
 """
 # generates unique floating points random list
