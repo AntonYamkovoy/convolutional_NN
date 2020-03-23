@@ -292,7 +292,7 @@ def refine_search(high_performance_points, number_of_images, image_size, kernel_
 image_size = 2
 kernel_size = 3
 number_of_images = 10
-number_points_sets = 10000
+number_points_sets = 100000
 points_per_set = 3
 input_size = image_size + kernel_size -1 # 4
 st = time.time()
