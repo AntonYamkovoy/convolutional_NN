@@ -221,6 +221,9 @@ def generate_set(image_size,kernel_size, size):
 
 """ from observation that usually you need symmetry between pos / neg numbers"""
 # function that tries to balance numbers pos / neg symmetrically from the outgo to not waste time on worse points
+# from experimental observations i notice that run time is very similar maybe a bit faster than other random function
+# however results are slightly better especially for larger point numbers
+# eg 5/7 points, the more points the better performance increase from the symmetric sampling
 def sample_floats_symmetric(low, high, k=1):
     if low > 0 or high < 0:
         return None
