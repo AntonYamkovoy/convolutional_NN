@@ -218,6 +218,32 @@ def generate_set(image_size,kernel_size, size):
 
     return list
 
+
+""" from observation that usually you need symmetry between pos / neg numbers"""
+# function that tries to balance numbers pos / neg symmetrically from the outgo to not waste time on worse points
+def sample_floats_symmetric(low, high, k=1):
+    if low > 0 or high < 0:
+        return None
+    result = []
+    seen = set()
+    for i in range(k):
+        var = bool(random.getrandbits(1))
+        if var == 0:
+            x = random.uniform(0,low)
+        else:
+            x = random.uniform(0,high)
+        while x in seen:
+            if var == 0:
+                x = random.uniform(0,low)
+            else:
+                x = random.uniform(0,high)
+        seen.add(x)
+        result.append(x)
+    return result
+
+
+
+
 def sample_floats(low, high, k=1):
     """ Return a k-length list of unique random floats
         in the range of low <= x <= high
@@ -255,6 +281,7 @@ def find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,
         upper = 1
         lower = -1
         pointsSet = sample_floats(lower,upper,image_size+kernel_size-2)
+        #pointsSet = sample_floats_symmetric(lower,upper,image_size+kernel_size-2)
         average_error = test_points_for_image_list(pointsSet,imageKernelList,image_size,kernel_size)
         print("average_error :",average_error, "@ points :",pointsSet)
         dictionary[tuple(pointsSet)] = average_error
@@ -292,7 +319,7 @@ def refine_search(high_performance_points, number_of_images, image_size, kernel_
 image_size = 2
 kernel_size = 3
 number_of_images = 10
-number_points_sets = 100000
+number_points_sets = 1000
 points_per_set = 3
 input_size = image_size + kernel_size -1 # 4
 st = time.time()
@@ -309,7 +336,7 @@ high_performance_points = []
 for x in range(100):
     high_performance_points.append(result[x])
 
-number_images_refined = 5000
+number_images_refined = 100
 print("Refining top ",len(high_performance_points), " points with ",number_images_refined," runs each")
 
 refined = refine_search(high_performance_points, number_images_refined, image_size, kernel_size, points_per_set)
