@@ -226,8 +226,13 @@ def sample_floats_symmetric(low, high, k=1):
         return None
     result = []
     seen = set()
+    var = bool(random.getrandbits(1))
     for i in range(k):
-        var = bool(random.getrandbits(1))
+        if var == 0:
+            var = 1
+        else:
+            var = 0
+
         if var == 0:
             x = random.uniform(0,low)
         else:
@@ -316,11 +321,11 @@ def refine_search(high_performance_points, number_of_images, image_size, kernel_
 
 
 # testing get error rate
-image_size = 2
+image_size = 4
 kernel_size = 3
-number_of_images = 10
+number_of_images = 100
 number_points_sets = 1000
-points_per_set = 3
+points_per_set = 5
 input_size = image_size + kernel_size -1 # 4
 st = time.time()
 result = find_error_rate(image_size,kernel_size,number_of_images, number_points_sets,points_per_set,input_size)
@@ -336,7 +341,7 @@ high_performance_points = []
 for x in range(100):
     high_performance_points.append(result[x])
 
-number_images_refined = 100
+number_images_refined = 1000
 print("Refining top ",len(high_performance_points), " points with ",number_images_refined," runs each")
 
 refined = refine_search(high_performance_points, number_images_refined, image_size, kernel_size, points_per_set)
